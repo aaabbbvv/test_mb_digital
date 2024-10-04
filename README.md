@@ -18,7 +18,7 @@ use default credentioanals from default.env file
 DEFAULT_ADMIN_EMAIL=admin@admin.com
 DEFAULT_ADMIN_PASSWORD=qwerty123456!
 ```
-####Access the API documentation via Swagger or Redoc:
+Access the API documentation via Swagger or Redoc:
 
 - Swagger: [http://0.0.0.0:8000/api/v0/swagger/](http://0.0.0.0:8000/api/v0/swagger/)
 - Redoc: [http://0.0.0.0:8000/api/v0/redoc/](http://0.0.0.0:8000/api/v0/redoc/)
