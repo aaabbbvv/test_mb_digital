@@ -8,8 +8,9 @@ from .serializers import (
     GroupCreateUpdateSerializer,
     BulkMembershipSerializer
 )
+from drf_yasg import openapi
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -97,13 +98,36 @@ class UserRegisterView(generics.CreateAPIView):
 # end of User Api region
 
 
-class MembershipBulkView(APIView):
-    def post(self, request):
-        serializer = BulkMembershipSerializer(data=request.data, many=True)
-        user_ids = User.objects.filter(is_admin=False).values_list(flat=True)
-        group_ids = Group.objects.all()
+class MembershipBulkView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = BulkMembershipSerializer
 
+    @swagger_auto_schema(
+        operation_description="Request for bulk update of users to groups",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID'),
+                    'group_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Group ID'),
+                    'action': openapi.Schema(type=openapi.TYPE_STRING,
+                                             description='Action to perform (e.g., add, remove)')
+                },
+                example={
+                    "user_id": 3,
+                    "group_id": 1,
+                    "action": "add"
+                }
+            ),
+        ),
+        responses={200: "Success"}
+    )
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid(raise_exception=True):
+            user_ids = User.objects.filter(is_admin=False).values_list(flat=True)
+            group_ids = Group.objects.all()
             for item in serializer.validated_data:
                 user_id = item['user_id']
                 group_id = item['group_id']
@@ -118,4 +142,3 @@ class MembershipBulkView(APIView):
                     Membership.objects.filter(user_id=user_id, group_id=group_id).delete()
 
             return Response({"detail": "Users updated successfully."}, status=status.HTTP_200_OK)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

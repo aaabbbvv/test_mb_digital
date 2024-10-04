@@ -6,13 +6,17 @@ from django.utils import timezone
 class UserCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['id', 'username', 'email']
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {
+            "username": {"required": True},
+            "email": {"required": True},
+        }
 
     def create(self, validated_data):
         user = self.Meta.model.objects.create(
@@ -66,16 +70,31 @@ class GroupsWithUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'users']
 
 
 class GroupCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class BulkMembershipSerializer(serializers.Serializer):
+
+
+    # @swagger_auto_schema(
+    #     responses={
+    #         200: openapi.Response(
+    #             description="A successful response with example data",
+    #             examples={
+    #                 "application/json": {
+    #                     "name": "John Doe",
+    #                     "age": 30
+    #                 }
+    #             }
+    #         )
+    #     }
+    # )
     user_id = serializers.IntegerField()
     group_id = serializers.IntegerField()
     action = serializers.ChoiceField(choices=['add', 'remove'])
